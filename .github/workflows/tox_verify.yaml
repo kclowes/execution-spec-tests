@@ -113,6 +113,8 @@ jobs:
         include:
           - os: macos-latest
             python: "3.11"
+          - os: macos-latest
+            python: "pypy3.11"
           - os: ubuntu-latest
             python: "3.12"
     steps:
@@ -158,6 +160,9 @@ jobs:
           - os: macos-latest
             name: macos-latest
             python: "3.12"
+          - os: macos-latest
+            name: macos-latest-pypy
+            python: "pypy3.11"
     steps:
       - name: Checkout ethereum/execution-spec-tests
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -190,6 +195,8 @@ jobs:
         include:
           - os: ubuntu-latest
             python: "3.11"
+          - os: ubuntu-latest
+            python: "pypy3.11"
           - os: macos-latest
             python: "3.12"
     steps:
