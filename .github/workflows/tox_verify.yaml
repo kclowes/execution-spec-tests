@@ -113,6 +113,8 @@ jobs:
         include:
           - os: macos-latest
             python: "3.11"
+          - os: macos-latest
+            python: "pypy3.11"
           - os: ubuntu-latest
             python: "3.12"
     steps:
@@ -156,6 +158,9 @@ jobs:
             name: self-hosted-ghr-xl-x64
             python: "3.11"
           - os: macos-latest
+            name: macos-latest-pypy
+            python: "pypy3.11"
+          - os: macos-latest
             name: macos-latest
             python: "3.12"
     steps:
@@ -190,6 +195,8 @@ jobs:
         include:
           - os: ubuntu-latest
             python: "3.11"
+          - os: ubuntu-latest
+            python: "pypy3.11"
           - os: macos-latest
             python: "3.12"
     steps:
