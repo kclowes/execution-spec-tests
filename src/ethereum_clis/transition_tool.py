@@ -1,6 +1,5 @@
 """Transition tool abstract class."""
 
-import gc
 import json
 import os
 import shutil
@@ -326,23 +325,20 @@ class TransitionTool(EthereumCLI):
             url_args = {}
         post_delay = 0.1
 
-        # Force garbage collection to prevent memory buildup in PyPy
-        gc.collect()
-
         # Increment request counter
         self._request_count += 1
 
         # Force server restart every 250 requests to prevent memory issues in PyPy
-        if self._request_count % 250 == 0:
-            print(
-                f"Restarting server after {self._request_count} "
-                "requests to prevent memory issues..."
-            )
-            self.shutdown()
-            time.sleep(1)
-            self.start_server()
-            # The server_url is updated by start_server() in the specific implementation
-            time.sleep(2)
+        # if self._request_count % 1000 == 0:
+        #     print(
+        #         f"Restarting server after {self._request_count} "
+        #         "requests to prevent memory issues..."
+        #     )
+        #     self.shutdown()
+        #     time.sleep(1)
+        #     self.start_server()
+        #     # The server_url is updated by start_server() in the specific implementation
+        #     time.sleep(2)
 
         while True:
             try:
