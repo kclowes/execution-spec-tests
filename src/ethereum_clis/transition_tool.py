@@ -1,5 +1,6 @@
 """Transition tool abstract class."""
 
+import gc
 import json
 import os
 import shutil
@@ -64,6 +65,7 @@ class TransitionTool(EthereumCLI):
     t8n_use_server: bool = False
     server_url: str | None = None
     process: Optional[subprocess.Popen] = None
+    _request_count: int = 0
 
     @abstractmethod
     def __init__(
@@ -295,6 +297,23 @@ class TransitionTool(EthereumCLI):
 
         return output
 
+    def _check_server_health(self):
+        """Check if the server is still responsive and restart if needed."""
+        try:
+            session = Session()
+            # Try a simple health check
+            session.get("http://localhost/", timeout=2)
+            return True
+        except Exception:
+            # Server seems to be down, try to restart it
+            print("Server appears to be down, attempting restart...")
+            self.shutdown()
+            time.sleep(1)  # Give it time to fully shut down
+            self.start_server()
+            # The server_url is updated by start_server() in the specific implementation
+            time.sleep(2)  # Give server time to start up
+            return False
+
     def _server_post(
         self,
         data: Dict[str, Any],
@@ -306,6 +325,25 @@ class TransitionTool(EthereumCLI):
         if url_args is None:
             url_args = {}
         post_delay = 0.1
+
+        # Force garbage collection to prevent memory buildup in PyPy
+        gc.collect()
+
+        # Increment request counter
+        self._request_count += 1
+
+        # Force server restart every 250 requests to prevent memory issues in PyPy
+        if self._request_count % 250 == 0:
+            print(
+                f"Restarting server after {self._request_count} "
+                "requests to prevent memory issues..."
+            )
+            self.shutdown()
+            time.sleep(1)
+            self.start_server()
+            # The server_url is updated by start_server() in the specific implementation
+            time.sleep(2)
+
         while True:
             try:
                 response = Session().post(
@@ -315,6 +353,11 @@ class TransitionTool(EthereumCLI):
                 )
                 break
             except RequestsConnectionError as e:
+                print("in requests connection error")
+                # Try to restart the server if it's down
+                if not self._check_server_health():
+                    # Server was restarted, try again
+                    continue
                 retries -= 1
                 if retries == 0:
                     raise e
