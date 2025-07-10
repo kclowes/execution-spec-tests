@@ -160,8 +160,8 @@ jobs:
           - os: macos-latest
             name: macos-latest
             python: "3.12"
-          - os: [self-hosted-ghr, size-xl-x64]
-            name: self-hosted-ghr-pypy
+          - os: macos-latest
+            name: macos-pypy
             python: "pypy3.11"
     steps:
       - name: Checkout ethereum/execution-spec-tests
