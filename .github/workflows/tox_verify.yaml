@@ -148,36 +148,6 @@ jobs:
           EELS_RESOLUTIONS_FILE: ${{ github.workspace }}/.github/configs/eels_resolutions.json
         run: uvx --with=tox-uv tox -e pytest
 
-  tests_deployed_pypy:
-    name: Fill tests, deployed, pypy3.11
-    runs-on: [self-hosted-ghr, size-xl-x64]
-    steps:
-      - name: Checkout ethereum/execution-spec-tests
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Checkout ethereum/execution-specs for local EELS implementation
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          repository: ethereum/execution-specs
-          ref: fa847a0e48309debee8edc510ceddb2fd5db2f2e
-          path: execution-specs
-          fetch-depth: 1
-      - name: Install linux dependencies
-        run: sudo apt-get install -y pkg-config libsecp256k1-dev
-      - name: Install uv ${{ vars.UV_VERSION }} and python ${{ matrix.python }}
-        uses: astral-sh/setup-uv@0c5e2b8115b80b4c7c5ddf6ffdd634974642d182
-        with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-          version: ${{ vars.UV_VERSION }}
-          python-version: "pypy3.11"
-      - name: Update eels_resolutions.json
-        run: |
-          sed -i -e "s|\$GITHUB_WORKSPACE|${GITHUB_WORKSPACE}|g" .github/configs/eels_resolutions.json
-      - name: Run tox - fill tests for deployed forks
-        env:
-          EELS_RESOLUTIONS_FILE: ${{ github.workspace }}/.github/configs/eels_resolutions.json
-        run: uvx --with=tox-uv tox -e tests-deployed
-
   tests_deployed:
     name: Fill tests, deployed, ${{ matrix.name }}, ${{ matrix.python }}
     runs-on: ${{ matrix.os }}
@@ -187,6 +157,9 @@ jobs:
           - os: [self-hosted-ghr, size-xl-x64]
             name: self-hosted-ghr-xl-x64
             python: "3.11"
+          - os: [self-hosted-ghr, size-xl-x64]
+            name: self-hosted-ghr-xl-x64-pypy
+            python: "pypy3.11"
           - os: macos-latest
             name: macos-latest
             python: "3.12"
@@ -207,6 +180,9 @@ jobs:
           cache-dependency-glob: "uv.lock"
           version: ${{ vars.UV_VERSION }}
           python-version: ${{ matrix.python }}
+      - name: Install linux dependencies
+        if: matrix.python == 'pypy3.11' && contains(matrix.os, 'self-hosted-ghr')
+        run: sudo apt-get install -y pkg-config libsecp256k1-dev
       - name: Update eels_resolutions.json
         run: |
           sed -i -e "s|\$GITHUB_WORKSPACE|${GITHUB_WORKSPACE}|g" .github/configs/eels_resolutions.json
