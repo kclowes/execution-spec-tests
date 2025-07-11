@@ -306,12 +306,8 @@ class TransitionTool(EthereumCLI):
             return True
         except Exception:
             # Server seems to be down, try to restart it
-            print("Server appears to be down, attempting restart...")
             self.shutdown()
-            time.sleep(0.1)  # Give it time to fully shut down
             self.start_server()
-            # The server_url is updated by start_server() in the specific implementation
-            time.sleep(0.5)  # Give server time to start up
             return False
 
     def _server_post(
