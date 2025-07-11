@@ -15,6 +15,7 @@ from urllib.parse import urlencode
 
 from requests import Response
 from requests.exceptions import ConnectionError as RequestsConnectionError
+from requests.exceptions import ReadTimeout
 from requests_unixsocket import Session  # type: ignore
 
 from ethereum_test_base_types import BlobSchedule
@@ -328,18 +329,6 @@ class TransitionTool(EthereumCLI):
         # Increment request counter
         self._request_count += 1
 
-        # Force server restart every 250 requests to prevent memory issues in PyPy
-        # if self._request_count % 1000 == 0:
-        #     print(
-        #         f"Restarting server after {self._request_count} "
-        #         "requests to prevent memory issues..."
-        #     )
-        #     self.shutdown()
-        #     time.sleep(1)
-        #     self.start_server()
-        #     # The server_url is updated by start_server() in the specific implementation
-        #     time.sleep(2)
-
         while True:
             try:
                 response = Session().post(
@@ -348,8 +337,7 @@ class TransitionTool(EthereumCLI):
                     timeout=timeout,
                 )
                 break
-            except RequestsConnectionError as e:
-                print("in requests connection error")
+            except (RequestsConnectionError, ReadTimeout) as e:
                 # Try to restart the server if it's down
                 if not self._check_server_health():
                     # Server was restarted, try again

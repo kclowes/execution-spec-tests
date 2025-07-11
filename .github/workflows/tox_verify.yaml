@@ -160,7 +160,7 @@ jobs:
           - os: macos-latest
             name: macos-latest
             python: "3.12"
-          - os: macos-latest
+          - os: [self-hosted-ghr, size-xl-x64]
             name: macos-pypy
             python: "pypy3.11"
     steps:
