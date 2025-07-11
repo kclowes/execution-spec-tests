@@ -65,7 +65,7 @@ class TransitionTool(EthereumCLI):
     t8n_use_server: bool = False
     server_url: str | None = None
     process: Optional[subprocess.Popen] = None
-    _request_count: int = 0
+    session: Session = None
 
     @abstractmethod
     def __init__(
@@ -81,6 +81,7 @@ class TransitionTool(EthereumCLI):
         super().__init__(binary=binary)
         self.trace = trace
         self._info_metadata: Optional[Dict[str, Any]] = {}
+        self.session = self._get_session()
 
     def __init_subclass__(cls):
         """Register all subclasses of TransitionTool as possible tools."""
@@ -297,17 +298,23 @@ class TransitionTool(EthereumCLI):
 
         return output
 
+    def _get_session(self):
+        if not self.session:
+            self.session = Session()
+
     def _check_server_health(self):
         """Check if the server is still responsive and restart if needed."""
         try:
-            session = Session()
+            session = self._get_session()
             # Try a simple health check
             session.get("http://localhost/", timeout=2)
             return True
         except Exception:
             # Server seems to be down, try to restart it
             self.shutdown()
+            time.sleep(0.1)
             self.start_server()
+            time.sleep(0.5)  # give server time to restart
             return False
 
     def _server_post(
@@ -322,17 +329,15 @@ class TransitionTool(EthereumCLI):
             url_args = {}
         post_delay = 0.1
 
-        # Increment request counter
-        self._request_count += 1
-
         while True:
             try:
-                response = Session().post(
-                    f"{self.server_url}?{urlencode(url_args, doseq=True)}",
-                    json=data,
-                    timeout=timeout,
-                )
-                break
+                with Session() as session:
+                    response = session.post(
+                        f"{self.server_url}?{urlencode(url_args, doseq=True)}",
+                        json=data,
+                        timeout=timeout,
+                    )
+                    break
             except (RequestsConnectionError, ReadTimeout) as e:
                 # Try to restart the server if it's down
                 if not self._check_server_health():
