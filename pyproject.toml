@@ -79,7 +79,7 @@ docs = [
     "mkdocstrings-python>=1.0.0,<2",
     "pillow>=10.0.1,<11",
     "pyspelling>=2.8.2,<3",
-    "lxml>=6.0.0",  # needs to be >= 6.0 for pypy
+    "lxml>=6.0.0,<7",  # needs to be >= 6.0 for pypy
     "setuptools==78.0.2",
 ]
 
