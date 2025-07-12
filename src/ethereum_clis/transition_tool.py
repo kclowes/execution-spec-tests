@@ -300,8 +300,9 @@ class TransitionTool(EthereumCLI):
         """Check if the server is still responsive and restart if needed."""
         try:
             with Session() as session:
-                # Try a simple health check
-                session.get("http://localhost/", timeout=2)
+                # Try a simple health check with a minimal POST request
+                session.post(self.server_url, json={}, timeout=2)
+
             return True
         except Exception:
             # Server seems to be down, try to restart it
