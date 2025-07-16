@@ -21,7 +21,7 @@ def get_lllc_container_id():
         if container_id is None:
             try:
                 # Run the docker command using subprocess. The command is equivalent to:
-                # docker run -d --entrypoint tail -v /tmp:/tests -w /tests lllc -f /dev/null
+                # docker run -d --entrypoint tail -v /tmp:/tests -w /tests winsvega/lllc -f /dev/null
                 result = subprocess.run(
                     [
                         "docker",
@@ -33,7 +33,7 @@ def get_lllc_container_id():
                         "/tmp:/tests",
                         "-w",
                         "/tests",
-                        "lllc",
+                        "winsvega/lllc",
                         "-f",
                         "/dev/null",
                     ],
@@ -52,16 +52,16 @@ def get_lllc_container_id():
 
 
 def stop_lllc_containers():
-    """Stop all running Docker containers that were started from the 'lllc' image."""
+    """Stop all running Docker containers that were started from the 'winsvega/lllc' image."""
     try:
-        # Retrieve container IDs for all running containers with the image 'lllc'
+        # Retrieve container IDs for all running containers with the image 'winsvega/lllc'
         result = subprocess.check_output(
-            ["docker", "ps", "-q", "--filter", "ancestor=lllc"], text=True
+            ["docker", "ps", "-q", "--filter", "ancestor=winsvega/lllc"], text=True
         )
         container_ids = result.strip().splitlines()
 
         if not container_ids:
-            print("No running containers for image 'lllc' found.")
+            print("No running containers for image 'winsvega/lllc' found.")
             return
 
         # Iterate over each container ID and stop it.

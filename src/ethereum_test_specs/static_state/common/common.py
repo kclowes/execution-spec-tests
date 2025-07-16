@@ -144,22 +144,27 @@ class CodeInFillerSource:
 
         # Parse lllc code
         elif self.code_raw.lstrip().startswith("{") or self.code_raw.lstrip().startswith("(asm"):
-            with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
-                tmp.write(self.code_raw)
-                tmp_path = tmp.name
-
-            # - using lllc
-            result = subprocess.run(["lllc", tmp_path], capture_output=True, text=True)
-
-            # - using docker:
-            #   If the running machine does not have lllc installed, we can use docker to run lllc,
-            #   but we need to start a container first, and the process is generally slower.
-            # from .docker import get_lllc_container_id
-            # result = subprocess.run(
-            #     ["docker", "exec", get_lllc_container_id(), "lllc", tmp_path[5:]],
-            #     capture_output=True,
-            #     text=True,
-            # )
+            # Try using lllc directly first, fall back to docker if not available
+            try:
+                with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
+                    tmp.write(self.code_raw)
+                    tmp_path = tmp.name
+                result = subprocess.run(["lllc", tmp_path], capture_output=True, text=True, check=True)
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                # Fall back to docker if lllc is not available
+                from .docker import get_lllc_container_id
+                # Create temp file in /tmp for Docker volume mount
+                with tempfile.NamedTemporaryFile(mode="w+", delete=False, dir="/tmp") as tmp:
+                    tmp.write(self.code_raw)
+                    tmp_path = tmp.name
+                # Convert /tmp path to container path: /tmp/... -> /tests/...
+                container_path = tmp_path.replace("/tmp/", "/tests/")
+                result = subprocess.run(
+                    ["docker", "exec", get_lllc_container_id(), "lllc", container_path],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                )
             compiled_code = "".join(result.stdout.splitlines())
         else:
             raise Exception(f'Error parsing code: "{self.code_raw}"')
