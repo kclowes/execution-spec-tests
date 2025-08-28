@@ -40,6 +40,7 @@ from ethereum_test_tools import (
     Hash,
     Header,
     Transaction,
+    TransactionException,
     add_kzg_version,
 )
 from ethereum_test_tools import Opcodes as Op
@@ -249,7 +250,8 @@ def blocks(  # noqa: D103
     if header_excess_blob_gas is not None:
         add_block(
             header_modifier={"excess_blob_gas": header_excess_blob_gas},
-            exception_message=BlockException.INCORRECT_EXCESS_BLOB_GAS,
+            exception_message=[TransactionException.INSUFFICIENT_MAX_FEE_PER_BLOB_GAS,
+                               BlockException.INCORRECT_EXCESS_BLOB_GAS]
         )
     elif header_blob_gas_used is not None:
         if header_blob_gas_used > (max_blobs_per_block * blob_gas_per_blob):
