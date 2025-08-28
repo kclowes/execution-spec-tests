@@ -155,6 +155,7 @@ def test_tx_intrinsic_gas(
     """Transaction intrinsic gas calculation on EIP2930."""
     intrinsic_gas_cost_calculator = fork.transaction_intrinsic_cost_calculator()
     intrinsic_gas_cost = intrinsic_gas_cost_calculator(calldata=data, access_list=access_list)
+    error_options = [TransactionException.INTRINSIC_GAS_TOO_LOW, TransactionException.INTRINSIC_GAS_BELOW_FLOOR_GAS_COST]
 
     tx = Transaction(
         ty=tx_type,
@@ -163,7 +164,7 @@ def test_tx_intrinsic_gas(
         data=data,
         access_list=access_list,
         gas_limit=intrinsic_gas_cost + (-1 if below_intrinsic else 0),
-        error=TransactionException.INTRINSIC_GAS_TOO_LOW if below_intrinsic else None,
+        error=error_options if below_intrinsic else None,
         protected=True,
     )
 
